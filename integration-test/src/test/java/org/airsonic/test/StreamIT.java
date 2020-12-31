@@ -11,20 +11,24 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class StreamIT {
     @Test
     public void testStreamFlacAsMp3() throws Exception {
-        testFileStreaming("dead");
+        byte[] response = getFileStream("dead");
+        assertThat(response).isNotEmpty();
     }
 
     @Test
     public void testStreamM4aAsMp3() throws Exception {
-        testFileStreaming("dance");
+        byte[] response = getFileStream("dance");
+        assertThat(response).isNotEmpty();
     }
 
     @Test
     public void testStreamMp3() throws Exception {
-        testFileStreaming("piano");
+        byte[] response = getFileStream("piano");
+        byte[] expected = IOUtils.toByteArray(StreamIT.class.getResourceAsStream("/blobs/stream/piano/input/piano.mp3"));
+        assertThat(response).containsExactly(expected);
     }
 
-    private void testFileStreaming(String file) throws Exception {
+    private byte[] getFileStream(String file) throws Exception {
         Scanner.uploadToDefaultMusicFolder(
                 Paths.get(this.getClass().getResource("/blobs/stream/" + file + "/input").toURI()),
                 "");
@@ -35,9 +39,6 @@ public class StreamIT {
                 .map(x -> x.getId())
                 .orElseThrow(() -> new RuntimeException("no media file id matched"));
 
-        byte[] fromServer = Scanner.getMediaFileData(mediaFileId);
-        String expectedBodyResource = String.format("/blobs/stream/" + file + "/responses/1.dat");
-        byte[] expected = IOUtils.toByteArray(StreamIT.class.getResourceAsStream(expectedBodyResource));
-        assertThat(fromServer).containsExactly(expected);
+        return Scanner.getMediaFileData(mediaFileId);
     }
 }
